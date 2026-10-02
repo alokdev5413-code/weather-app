@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather App</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      padding: 20px;
+    }
+
+    .weather-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+      color: #222;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 25px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      background: #2196f3;
+      color: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover {
+      background: #1976d2;
+    }
+
+    .weather {
+      display: none;
+    }
+
+    .city {
+      font-size: 28px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .icon {
+      font-size: 70px;
+      margin: 15px 0;
+    }
+
+    .temperature {
+      font-size: 55px;
+      font-weight: bold;
+      color: #2196f3;
+    }
+
+    .description {
+      text-transform: capitalize;
+      color: #555;
+      font-size: 18px;
+      margin: 5px 0 25px;
+    }
+
+    .details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .detail {
+      background: #f4f7fa;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    .detail span {
+      display: block;
+      font-size: 13px;
+      color: #777;
+      margin-bottom: 5px;
+    }
+
+    .detail strong {
+      font-size: 18px;
+      color: #222;
+    }
+
+    .error {
+      display: none;
+      color: #e53935;
+      margin-top: 15px;
+    }
+
+    .loading {
+      display: none;
+      color: #555;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="weather-card">
+    <h1>🌤️ Weather App</h1>
+
+    <div class="search-box">
+      <input
+        type="text"
+        id="cityInput"
+        placeholder="Enter city..."
+        value="Lucknow"
+      />
+      <button onclick="getWeather()">Search</button>
+    </div>
+
+    <div class="loading" id="loading">
+      Loading weather...
+    </div>
+
+    <div class="error" id="error">
+      City not found. Please try again.
+    </div>
+
+    <div class="weather" id="weather">
+      <div class="city" id="city">Lucknow</div>
+
+      <div class="icon" id="icon">🌤️</div>
+
+      <div class="temperature">
+        <span id="temperature">--</span>°C
+      </div>
+
+      <div class="description" id="description">
+        Weather condition
+      </div>
+
+      <div class="details">
+        <div class="detail">
+          <span>💧 Humidity</span>
+          <strong id="humidity">--%</strong>
+        </div>
+
+        <div class="detail">
+          <span>💨 Wind</span>
+          <strong id="wind">-- km/h</strong>
+        </div>
+
+        <div class="detail">
+          <span>🌡️ Feels Like</span>
+          <strong id="feelsLike">--°C</strong>
+        </div>
+
+        <div class="detail">
+          <span>📊 Pressure</span>
+          <strong id="pressure">-- hPa</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Demo ke liye apni OpenWeatherMap API key yahan daalein.
+    const API_KEY = "04d8c0c74a021f2d1de98bca0e46d56b";
+
+    async function getWeather() {
+      const city = document.getElementById("cityInput").value.trim();
+
+      if (!city) {
+        alert("Please enter a city name.");
+        return;
+      }
+
+      const loading = document.getElementById("loading");
+      const error = document.getElementById("error");
+      const weather = document.getElementById("weather");
+
+      loading.style.display = "block";
+      error.style.display = "none";
+      weather.style.display = "none";
+
+      try {
+        const url =
+          `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error("City not found");
+        }
+
+        const data = await response.json();
+
+        document.getElementById("city").textContent =
+          `${data.name}, ${data.sys.country}`;
+
+        document.getElementById("temperature").textContent =
+          Math.round(data.main.temp);
+
+        document.getElementById("description").textContent =
+          data.weather[0].description;
+
+        document.getElementById("humidity").textContent =
+          `${data.main.humidity}%`;
+
+        document.getElementById("wind").textContent =
+          `${Math.round(data.wind.speed * 3.6)} km/h`;
+
+        document.getElementById("feelsLike").textContent =
+          `${Math.round(data.main.feels_like)}°C`;
+
+        document.getElementById("pressure").textContent =
+          `${data.main.pressure} hPa`;
+
+        document.getElementById("icon").textContent =
+          getWeatherEmoji(data.weather[0].main);
+
+        weather.style.display = "block";
+
+      } catch (err) {
+        error.style.display = "block";
+      } finally {
+        loading.style.display = "none";
+      }
+    }
+
+    function getWeatherEmoji(condition) {
+      const emojis = {
+        Clear: "☀️",
+        Clouds: "☁️",
+        Rain: "🌧️",
+        Drizzle: "🌦️",
+        Thunderstorm: "⛈️",
+        Snow: "❄️",
+        Mist: "🌫️",
+        Smoke: "🌫️",
+        Haze: "🌫️",
+        Dust: "🌪️",
+        Fog: "🌫️",
+        Sand: "🌪️",
+        Ash: "🌋",
+        Squall: "💨",
+        Tornado: "🌪️"
+      };
+
+      return emojis[condition] || "🌤️";
+    }
+
+    // Enter press karne par search
+    document.getElementById("cityInput").addEventListener("keydown", function(event) {
+      if (event.key === "Enter") {
+        getWeather();
+      }
+    });
+  </script>
+
+</body>
+</html>
